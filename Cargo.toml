@@ -1,5 +1,6 @@
 [workspace]
 members = ["sample"]
+resolver = "2"
 
 [workspace.dependencies]
 itertools = { version = "*" }
