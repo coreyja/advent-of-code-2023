@@ -1,3 +1,5 @@
+use miette::{IntoDiagnostic, Result};
+
 #[derive(Debug, PartialEq)]
 struct Game {
     id: u32,
@@ -5,21 +7,24 @@ struct Game {
 }
 
 impl Game {
-    fn parse(input: &str) -> Self {
+    fn parse(input: &str) -> Result<Self> {
         let split = input.split(':').collect::<Vec<_>>();
         let game_id_section = split[0];
         let cube_draws_section = split[1];
 
         let game_id = game_id_section.split_whitespace().collect::<Vec<_>>()[1]
             .parse::<u32>()
-            .unwrap();
+            .into_diagnostic()?;
 
-        let cube_draws: Vec<_> = cube_draws_section.split(';').map(CubeDraw::parse).collect();
+        let cube_draws: Result<Vec<_>> =
+            cube_draws_section.split(';').map(CubeDraw::parse).collect();
 
-        Game {
+        let cube_draws = cube_draws?;
+
+        Ok(Game {
             id: game_id,
             cube_draws,
-        }
+        })
     }
 
     fn valid_for(&self, validate_against: &CubeDraw) -> bool {
@@ -63,30 +68,31 @@ struct CubeDraw {
 }
 
 impl CubeDraw {
-    fn parse(input: &str) -> Self {
+    fn parse(input: &str) -> Result<Self> {
         // Format of each colored_draw is vec!["8","green"]
         let colored_draw = input
             .split(',')
             .map(|s| s.split_whitespace().collect::<Vec<_>>())
+            .map(|v| (v[0], v[1]))
             .collect::<Vec<_>>();
 
-        fn count_for_color(colored_draw: &[Vec<&str>], color: &str) -> u32 {
+        fn count_for_color(colored_draw: &[(&str, &str)], color: &str) -> Result<u32> {
             colored_draw
                 .iter()
-                .find(|cd| cd[1] == color)
-                .map(|cd| cd[0].parse::<u32>().unwrap())
-                .unwrap_or(0)
+                .find(|cd| cd.1 == color)
+                .map(|cd| cd.0.parse::<u32>().into_diagnostic())
+                .unwrap_or(Ok(0))
         }
 
-        let red_count = count_for_color(&colored_draw, "red");
-        let blue_count = count_for_color(&colored_draw, "blue");
-        let green_count = count_for_color(&colored_draw, "green");
+        let red_count = count_for_color(&colored_draw, "red")?;
+        let blue_count = count_for_color(&colored_draw, "blue")?;
+        let green_count = count_for_color(&colored_draw, "green")?;
 
-        CubeDraw {
+        Ok(CubeDraw {
             red_count,
             blue_count,
             green_count,
-        }
+        })
     }
 
     fn valid_for(&self, validate_against: &CubeDraw) -> bool {
@@ -96,43 +102,45 @@ impl CubeDraw {
     }
 }
 
-fn part_1(input: &str) -> u32 {
+fn part_1(input: &str) -> Result<u32> {
     let validate_against = CubeDraw {
         red_count: 12,
         blue_count: 14,
         green_count: 13,
     };
 
-    let games = input.lines().map(Game::parse).collect::<Vec<_>>();
+    let games = input.lines().map(Game::parse).collect::<Result<Vec<_>>>()?;
 
     let valid_games = games
         .iter()
         .filter(|g| g.valid_for(&validate_against))
         .collect::<Vec<_>>();
 
-    valid_games.iter().map(|g| g.id).sum()
+    Ok(valid_games.iter().map(|g| g.id).sum())
 }
 
-fn part_2(input: &str) -> u32 {
-    let games = input.lines().map(Game::parse).collect::<Vec<_>>();
+fn part_2(input: &str) -> Result<u32> {
+    let games = input.lines().map(Game::parse).collect::<Result<Vec<_>>>()?;
 
-    games.iter().map(|g| g.minumum_power()).sum()
+    Ok(games.iter().map(|g| g.minumum_power()).sum())
 }
 
-fn main() {
+fn main() -> Result<()> {
     let sample_input = include_str!("sample.input");
-    let sample_part_1_ans = part_1(sample_input);
+    let sample_part_1_ans = part_1(sample_input)?;
 
     let my_input = include_str!("my.input");
-    let my_part_1_ans = part_1(my_input);
+    let my_part_1_ans = part_1(my_input)?;
 
     dbg!(sample_part_1_ans, my_part_1_ans);
 
-    let sample_part_2_ans = part_2(sample_input);
+    let sample_part_2_ans = part_2(sample_input)?;
     dbg!(sample_part_2_ans);
 
-    let my_part_2_ans = part_2(my_input);
+    let my_part_2_ans = part_2(my_input)?;
     dbg!(my_part_2_ans);
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -140,9 +148,9 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_parse_cube_draw() {
+    fn test_parse_cube_draw() -> Result<()> {
         let input = "8 green, 6 blue";
-        let cd = CubeDraw::parse(input);
+        let cd = CubeDraw::parse(input)?;
 
         assert_eq!(
             cd,
@@ -151,6 +159,8 @@ mod test {
                 blue_count: 6,
                 green_count: 8
             }
-        )
+        );
+
+        Ok(())
     }
 }
