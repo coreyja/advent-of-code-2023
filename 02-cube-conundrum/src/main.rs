@@ -27,6 +27,32 @@ impl Game {
             .iter()
             .all(|cd| cd.valid_for(validate_against))
     }
+
+    fn minumum_power(&self) -> u32 {
+        let mut minimum_cube_count = CubeDraw {
+            red_count: 0,
+            blue_count: 0,
+            green_count: 0,
+        };
+
+        for cd in &self.cube_draws {
+            if cd.red_count > minimum_cube_count.red_count {
+                minimum_cube_count.red_count = cd.red_count;
+            }
+
+            if cd.blue_count > minimum_cube_count.blue_count {
+                minimum_cube_count.blue_count = cd.blue_count;
+            }
+
+            if cd.green_count > minimum_cube_count.green_count {
+                minimum_cube_count.green_count = cd.green_count;
+            }
+        }
+
+        minimum_cube_count.red_count
+            * minimum_cube_count.blue_count
+            * minimum_cube_count.green_count
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -87,6 +113,12 @@ fn part_1(input: &str) -> u32 {
     valid_games.iter().map(|g| g.id).sum()
 }
 
+fn part_2(input: &str) -> u32 {
+    let games = input.lines().map(Game::parse).collect::<Vec<_>>();
+
+    games.iter().map(|g| g.minumum_power()).sum()
+}
+
 fn main() {
     let sample_input = include_str!("sample.input");
     let sample_part_1_ans = part_1(sample_input);
@@ -95,6 +127,12 @@ fn main() {
     let my_part_1_ans = part_1(my_input);
 
     dbg!(sample_part_1_ans, my_part_1_ans);
+
+    let sample_part_2_ans = part_2(sample_input);
+    dbg!(sample_part_2_ans);
+
+    let my_part_2_ans = part_2(my_input);
+    dbg!(my_part_2_ans);
 }
 
 #[cfg(test)]
