@@ -1,5 +1,5 @@
 [workspace]
-members = ["sample", "01-trebuchet", "02-cube-conundrum"]
+members = ["sample", "01-trebuchet", "02-cube-conundrum", "03-gear-ratios"]
 resolver = "2"
 
 [workspace.dependencies]

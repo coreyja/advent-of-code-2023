@@ -90,6 +90,7 @@ impl CubeDraw {
 
         Ok(CubeDraw {
             red_count,
+            
             blue_count,
             green_count,
         })
