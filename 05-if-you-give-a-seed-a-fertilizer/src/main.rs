@@ -50,6 +50,10 @@ impl SeedEntry {
     fn seeds(&self) -> Vec<u64> {
         (self.seed_start..self.seed_start + self.count).collect::<Vec<_>>()
     }
+
+    fn contains(&self, p: u64) -> bool {
+        p >= self.seed_start && p < self.seed_start + self.count
+    }
 }
 
 #[derive(Debug)]
@@ -103,7 +107,7 @@ impl<SeedType: Seeds> Input<SeedType> {
 
     fn mapped_value(&self, mut seed: u64) -> u64 {
         for map in &self.maps {
-            let entry: Option<u64> = map.entries.iter().find_map(|e| e.translate(seed));
+            let entry: Option<u64> = map.entries.iter().find_map(|e| e.translate_down(seed));
             seed = entry.unwrap_or(seed);
         }
 
@@ -111,7 +115,7 @@ impl<SeedType: Seeds> Input<SeedType> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Map {
     entries: Vec<MapEntry>,
 }
@@ -127,11 +131,41 @@ impl Map {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct MapEntry {
     dest_range_start: u64,
     source_range_start: u64,
     range_length: u64,
+}
+
+fn important_points(maps: &[Map]) -> Vec<u64> {
+    let mut maps = maps.to_vec();
+    maps.reverse();
+    let maps = maps;
+
+    let mut points = vec![];
+
+    for m in maps {
+        let mut translated_points = points
+            .iter()
+            .map(|p| {
+                m.entries
+                    .iter()
+                    .find_map(|e| e.translate_up(*p))
+                    .unwrap_or(*p)
+            })
+            .collect::<Vec<_>>();
+        let mut new_points = m
+            .entries
+            .iter()
+            .map(|e| e.start_translated_up())
+            .collect::<Vec<_>>();
+        translated_points.append(&mut new_points);
+
+        points = translated_points;
+    }
+
+    points
 }
 
 impl MapEntry {
@@ -148,13 +182,28 @@ impl MapEntry {
         }
     }
 
-    fn translate(&self, seed: u64) -> Option<u64> {
+    fn translate_down(&self, seed: u64) -> Option<u64> {
         if seed >= self.source_range_start && seed < self.source_range_start + self.range_length {
             let offset = seed - self.source_range_start;
             Some(self.dest_range_start + offset)
         } else {
             None
         }
+    }
+
+    fn translate_up(&self, seed: u64) -> Option<u64> {
+        if seed >= self.dest_range_start && seed < self.dest_range_start + self.range_length {
+            let offset = seed - self.dest_range_start;
+            Some(self.source_range_start + offset)
+        } else {
+            None
+        }
+    }
+
+    fn start_translated_up(&self) -> u64 {
+        let seed = self.dest_range_start;
+
+        self.translate_up(seed).unwrap_or(seed)
     }
 }
 
@@ -175,5 +224,15 @@ fn part_1(input: &str) -> u64 {
 }
 
 fn part_2(input: &str) -> u64 {
-    solve::<Part2Seeds>(input)
+    let input = Input::<Part2Seeds>::parse(input);
+    let important_points = important_points(&input.maps);
+    let p = important_points
+        .iter()
+        .filter(|p| input.seeds.entries.iter().any(|s| s.contains(**p)))
+        .collect::<Vec<_>>();
+
+    p.iter()
+        .map(|seed| input.mapped_value(**seed))
+        .min()
+        .unwrap()
 }
