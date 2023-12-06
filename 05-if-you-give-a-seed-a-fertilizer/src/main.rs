@@ -158,7 +158,7 @@ fn important_points(maps: &[Map]) -> Vec<u64> {
         let mut new_points = m
             .entries
             .iter()
-            .map(|e| e.start_translated_up())
+            .map(|e| e.source_range_start)
             .collect::<Vec<_>>();
         translated_points.append(&mut new_points);
 
@@ -198,12 +198,6 @@ impl MapEntry {
         } else {
             None
         }
-    }
-
-    fn start_translated_up(&self) -> u64 {
-        let seed = self.dest_range_start;
-
-        self.translate_up(seed).unwrap_or(seed)
     }
 }
 
