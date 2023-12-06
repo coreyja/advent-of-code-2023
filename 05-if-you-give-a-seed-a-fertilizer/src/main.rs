@@ -8,22 +8,44 @@ fn main() {
     dbg!(my_part_1_ans);
 }
 
-#[derive(Debug)]
-struct Input {
+struct Part1Seeds {
     seeds: Vec<u64>,
+}
+
+trait Seeds {
+    fn parse(input: &str) -> Self;
+    fn seeds(&self) -> Vec<u64>;
+}
+
+impl Seeds for Part1Seeds {
+    fn parse(input: &str) -> Self {
+        let seeds = input
+            .strip_prefix("seeds: ")
+            .unwrap()
+            .split_whitespace()
+            .map(|s| s.parse().unwrap())
+            .collect::<Vec<_>>();
+
+        Self { seeds }
+    }
+
+    fn seeds(&self) -> Vec<u64> {
+        self.seeds.clone()
+    }
+}
+
+#[derive(Debug)]
+struct Input<SeedType: Seeds> {
+    seeds: SeedType,
     maps: Vec<Map>,
 }
 
-impl Input {
+impl<SeedType: Seeds> Input<SeedType> {
     fn parse(input: &str) -> Self {
         let mut sections = input.split("\n\n");
 
         let seeds = sections.next().unwrap();
-        let seeds = seeds.strip_prefix("seeds: ").unwrap();
-        let seeds = seeds
-            .split_whitespace()
-            .map(|s| s.parse().unwrap())
-            .collect::<Vec<_>>();
+        let seeds = SeedType::parse(seeds);
 
         let maps = sections.map(Map::parse).collect::<Vec<_>>();
 
@@ -42,19 +64,17 @@ impl Input {
 
 #[derive(Debug)]
 struct Map {
-    name: String,
     entries: Vec<MapEntry>,
 }
 
 impl Map {
     fn parse(input: &str) -> Self {
         let mut lines = input.lines();
-        let name_line = lines.next().unwrap();
-        let name = name_line.split(' ').next().unwrap().to_string();
+        let _ = lines.next().unwrap();
 
         let entries = lines.map(MapEntry::parse).collect::<Vec<_>>();
 
-        Self { name, entries }
+        Self { entries }
     }
 }
 
@@ -90,10 +110,11 @@ impl MapEntry {
 }
 
 fn part_1(sample_input: &str) -> u64 {
-    let input = Input::parse(sample_input);
+    let input = Input::<Part1Seeds>::parse(sample_input);
 
     input
         .seeds
+        .seeds()
         .iter()
         .map(|seed| input.mapped_value(*seed))
         .min()
