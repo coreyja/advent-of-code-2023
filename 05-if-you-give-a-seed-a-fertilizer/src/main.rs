@@ -6,15 +6,21 @@ fn main() {
     let my_input = include_str!("my.input");
     let my_part_1_ans = part_1(my_input);
     dbg!(my_part_1_ans);
-}
 
-struct Part1Seeds {
-    seeds: Vec<u64>,
+    let sample_part_2_ans = part_2(sample_input);
+    dbg!(sample_part_2_ans);
+
+    let my_part_2_ans = part_2(my_input);
+    dbg!(my_part_2_ans);
 }
 
 trait Seeds {
     fn parse(input: &str) -> Self;
     fn seeds(&self) -> Vec<u64>;
+}
+
+struct Part1Seeds {
+    seeds: Vec<u64>,
 }
 
 impl Seeds for Part1Seeds {
@@ -31,6 +37,49 @@ impl Seeds for Part1Seeds {
 
     fn seeds(&self) -> Vec<u64> {
         self.seeds.clone()
+    }
+}
+
+#[derive(Debug)]
+struct SeedEntry {
+    seed_start: u64,
+    count: u64,
+}
+
+impl SeedEntry {
+    fn seeds(&self) -> Vec<u64> {
+        (self.seed_start..self.seed_start + self.count).collect::<Vec<_>>()
+    }
+}
+
+#[derive(Debug)]
+struct Part2Seeds {
+    entries: Vec<SeedEntry>,
+}
+
+impl Seeds for Part2Seeds {
+    fn parse(input: &str) -> Self {
+        let seeds = input
+            .strip_prefix("seeds: ")
+            .unwrap()
+            .split_whitespace()
+            .collect::<Vec<_>>();
+
+        let entries = (0..seeds.len())
+            .step_by(2)
+            .map(|i| {
+                let seed_start = seeds[i].parse().unwrap();
+                let count = seeds[i + 1].parse().unwrap();
+
+                SeedEntry { seed_start, count }
+            })
+            .collect::<Vec<_>>();
+
+        Self { entries }
+    }
+
+    fn seeds(&self) -> Vec<u64> {
+        self.entries.iter().flat_map(|e| e.seeds()).collect()
     }
 }
 
@@ -109,8 +158,8 @@ impl MapEntry {
     }
 }
 
-fn part_1(sample_input: &str) -> u64 {
-    let input = Input::<Part1Seeds>::parse(sample_input);
+fn solve<SeedType: Seeds>(sample_input: &str) -> u64 {
+    let input = Input::<SeedType>::parse(sample_input);
 
     input
         .seeds
@@ -119,4 +168,12 @@ fn part_1(sample_input: &str) -> u64 {
         .map(|seed| input.mapped_value(*seed))
         .min()
         .unwrap()
+}
+
+fn part_1(input: &str) -> u64 {
+    solve::<Part1Seeds>(input)
+}
+
+fn part_2(input: &str) -> u64 {
+    solve::<Part2Seeds>(input)
 }
