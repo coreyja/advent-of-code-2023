@@ -6,6 +6,7 @@ members = [
   "03-gear-ratios",
   "04-scratchcards",
   "05-if-you-give-a-seed-a-fertilizer",
+  "06-wait-for-it",
 ]
 resolver = "2"
 
