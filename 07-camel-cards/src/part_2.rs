@@ -40,27 +40,46 @@ impl Hand {
             card_count.entry(c).and_modify(|c| *c += 1).or_insert(1);
         }
 
-        if card_count.len() == 1 {
+        let joker_count = card_count.remove(&Card::Jack).unwrap_or(0);
+
+        if card_count.len() <= 1 {
             return HandType::FiveOfAKind;
         }
 
-        if card_count.values().any(|c| *c == 4) {
+        if card_count.values().any(|c| *c + joker_count == 4) {
             return HandType::FourOfAKind;
         }
 
+        // Zero Joker Count Case
         if card_count.values().any(|c| *c == 3) && card_count.values().any(|c| *c == 2) {
             return HandType::FullHouse;
         }
+        // One Joker Count Case
+        if joker_count == 1 && card_count.values().filter(|c| **c == 2).count() == 2 {
+            return HandType::FullHouse;
+        }
+        // Two Joker Count Case
+        if joker_count == 2
+            && card_count.values().any(|c| *c == 2)
+            && card_count.values().any(|c| *c == 1)
+        {
+            return HandType::FullHouse;
+        }
 
-        if card_count.values().any(|c| *c == 3) {
+        if card_count.values().any(|c| *c + joker_count == 3) {
             return HandType::ThreeOfAKind;
         }
 
+        // No Joker Case
         if card_count.values().filter(|c| **c == 2).count() == 2 {
             return HandType::TwoPair;
         }
+        //One Joker Case
+        if joker_count == 1 && card_count.values().filter(|c| **c == 2).count() == 1 {
+            return HandType::TwoPair;
+        }
 
-        if card_count.values().any(|c| *c == 2) {
+        if card_count.values().any(|c| *c + joker_count == 2) {
             return HandType::OnePair;
         }
 
@@ -70,6 +89,7 @@ impl Hand {
 
 #[derive(Debug, PartialEq, Clone, Copy, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum Card {
+    Jack,
     Two,
     Three,
     Four,
@@ -79,7 +99,6 @@ pub(crate) enum Card {
     Eight,
     Nine,
     Ten,
-    Jack,
     Queen,
     King,
     Ace,
