@@ -1,10 +1,10 @@
 use std::ops::{Range, RangeInclusive};
 
-struct Input {
+struct Part1Input {
     races: Vec<Race>,
 }
 
-impl Input {
+impl Part1Input {
     fn parse(input: &str) -> Self {
         let lines = input.lines().collect::<Vec<_>>();
         let times = lines[0];
@@ -26,7 +26,32 @@ impl Input {
             })
             .collect::<Vec<_>>();
 
-        Input { races }
+        Part1Input { races }
+    }
+}
+
+struct Part2Input {
+    race: Race,
+}
+
+impl Part2Input {
+    fn parse(input: &str) -> Self {
+        let lines = input.lines().collect::<Vec<_>>();
+        let times = lines[0];
+        let distances = lines[1];
+
+        let time = times.strip_prefix("Time:").unwrap().trim();
+        let distance = distances.strip_prefix("Distance:").unwrap().trim();
+
+        let time = time.replace(' ', "").parse::<u64>().unwrap();
+        let record_distance = distance.replace(' ', "").parse::<u64>().unwrap();
+
+        let race = Race {
+            time,
+            record_distance,
+        };
+
+        Self { race }
     }
 }
 
@@ -58,13 +83,18 @@ impl Race {
 }
 
 fn part_1(input: &str) -> u64 {
-    let input = Input::parse(input);
+    let input = Part1Input::parse(input);
     input
         .races
         .iter()
         .map(|r| r.possible_win_range().count())
         .reduce(|a, b| a * b)
         .unwrap() as u64
+}
+
+fn part_2(input: &str) -> u64 {
+    let input = Part2Input::parse(input);
+    input.race.possible_win_range().count() as u64
 }
 
 fn main() {
@@ -75,4 +105,10 @@ fn main() {
     let my_input = include_str!("my.input");
     let my_part_1_ans = part_1(my_input);
     dbg!(my_part_1_ans);
+
+    let sample_part_2_ans = part_2(sample_input);
+    dbg!(sample_part_2_ans);
+
+    let my_part_2_ans = part_2(my_input);
+    dbg!(my_part_2_ans);
 }
