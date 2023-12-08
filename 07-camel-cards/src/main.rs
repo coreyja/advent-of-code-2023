@@ -6,15 +6,11 @@ pub(crate) struct Hand<CardType> {
     pub(crate) bid: usize,
 }
 
-impl Ord for Hand<Card> {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.hand_type()
-            .cmp(&other.hand_type())
-            .then_with(|| self.cards.cmp(&other.cards))
-    }
-}
-
-impl Ord for Hand<JokerCard> {
+impl<CardType> Ord for Hand<CardType>
+where
+    CardType: Eq + std::hash::Hash + Copy + Ord + std::fmt::Debug,
+    Hand<CardType>: Scorable,
+{
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         self.hand_type()
             .cmp(&other.hand_type())
@@ -46,8 +42,8 @@ impl<CardType: From<char> + std::fmt::Debug + Eq + std::hash::Hash + Copy> Hand<
     }
 }
 
-impl Hand<Card> {
-    pub(crate) fn hand_type(&self) -> HandType {
+impl Scorable for Hand<Card> {
+    fn hand_type(&self) -> HandType {
         let mut card_count = HashMap::<Card, usize>::new();
 
         for c in self.cards {
@@ -82,8 +78,12 @@ impl Hand<Card> {
     }
 }
 
-impl Hand<JokerCard> {
-    pub(crate) fn hand_type(&self) -> HandType {
+trait Scorable {
+    fn hand_type(&self) -> HandType;
+}
+
+impl Scorable for Hand<JokerCard> {
+    fn hand_type(&self) -> HandType {
         let mut card_count = HashMap::<JokerCard, usize>::new();
 
         for c in self.cards {
