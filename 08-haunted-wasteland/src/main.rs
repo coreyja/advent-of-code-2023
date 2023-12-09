@@ -163,10 +163,7 @@ fn part2_try2(input: &str) -> usize {
 
     let counts = to_end_counts.values().cloned().collect::<Vec<_>>();
 
-    dbg!(&counts);
-
     let lcm = least_common_multiple(&counts);
-    dbg!(lcm);
 
     lcm
 }
