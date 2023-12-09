@@ -8,6 +8,7 @@ members = [
   "05-if-you-give-a-seed-a-fertilizer",
   "06-wait-for-it",
   "07-camel-cards",
+  "08-haunted-wasteland",
 ]
 resolver = "2"
 

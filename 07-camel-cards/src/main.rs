@@ -46,8 +46,7 @@ impl Scorable for Hand<Card> {
     fn hand_type(&self) -> HandType {
         let mut card_count = HashMap::<Card, usize>::new();
 
-        for c in self.cards {
-            card_count.entry(c).and_modify(|c| *c += 1).or_insert(1);
+        for c in self.cards {card_count.entry(c).and_modify(|c| *c += 1).or_insert(1);
         }
 
         if card_count.len() == 1 {
