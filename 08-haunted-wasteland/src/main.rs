@@ -94,6 +94,99 @@ fn part_1(input: &str) -> usize {
     count
 }
 
+fn part_2(input: &str) -> usize {
+    let map = Map::parse(input);
+
+    let starting_positions = map
+        .nodes
+        .iter()
+        .filter(|(_, n)| n.name.ends_with('A'))
+        .map(|(_, n)| n.name.clone())
+        .collect::<Vec<_>>();
+
+    let mut count = 0;
+    let mut current_node_names = starting_positions;
+    let mut intruction_iter = map.instructions.iter().cycle();
+
+    while !current_node_names.iter().all(|n| n.ends_with('Z')) {
+        let current_instruction = intruction_iter.next().unwrap();
+
+        for current_node_name in current_node_names.iter_mut() {
+            let current_node = map.nodes.get(current_node_name).unwrap();
+
+            let next_node_name = match current_instruction {
+                Direction::Left => current_node.left.clone(),
+                Direction::Right => current_node.right.clone(),
+            };
+
+            *current_node_name = next_node_name;
+        }
+
+        count += 1;
+    }
+
+    count
+}
+
+fn part2_try2(input: &str) -> usize {
+    let map = Map::parse(input);
+
+    let starting_positions = map
+        .nodes
+        .iter()
+        .filter(|(_, n)| n.name.ends_with('A'))
+        .map(|(_, n)| n.name.clone())
+        .collect::<Vec<_>>();
+
+    let mut to_end_counts = HashMap::<String, usize>::new();
+
+    for start in starting_positions.iter() {
+        let mut current_node_name = start.clone();
+        let mut count = 0;
+        let mut intruction_iter = map.instructions.iter().cycle();
+
+        while !current_node_name.ends_with('Z') {
+            let current_instruction = intruction_iter.next().unwrap();
+            let current_node = map.nodes.get(&current_node_name).unwrap();
+
+            let next_node_name = match current_instruction {
+                Direction::Left => current_node.left.clone(),
+                Direction::Right => current_node.right.clone(),
+            };
+
+            current_node_name = next_node_name;
+            count += 1;
+        }
+
+        to_end_counts.insert(start.clone(), count);
+    }
+
+    let counts = to_end_counts.values().cloned().collect::<Vec<_>>();
+
+    dbg!(&counts);
+
+    let lcm = least_common_multiple(&counts);
+    dbg!(lcm);
+
+    lcm
+}
+
+fn least_common_multiple(nums: &[usize]) -> usize {
+    let mut result = 1;
+    for &num in nums {
+        result = num * result / gcd(num, result);
+    }
+    result
+}
+
+fn gcd(a: usize, b: usize) -> usize {
+    if b == 0 {
+        return a;
+    }
+
+    gcd(b, a % b)
+}
+
 fn main() {
     let sample_1_input = include_str!("sample1.input");
     let sample_1_part_1_ans = part_1(sample_1_input);
@@ -106,4 +199,11 @@ fn main() {
     let my_input = include_str!("my.input");
     let my_part_1_ans = part_1(my_input);
     dbg!(my_part_1_ans);
+
+    let sample_3_input = include_str!("sample3.input");
+    let sample_3_part_2_ans = part2_try2(sample_3_input);
+    dbg!(sample_3_part_2_ans);
+
+    let my_part_2_ans = part2_try2(my_input);
+    dbg!(my_part_2_ans);
 }
