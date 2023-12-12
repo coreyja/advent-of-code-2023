@@ -11,6 +11,7 @@ members = [
   "08-haunted-wasteland",
   "09-mirage-maintenance",
   "10-pipe-maze",
+  "11-cosmic-expansion",
 ]
 resolver = "2"
 
