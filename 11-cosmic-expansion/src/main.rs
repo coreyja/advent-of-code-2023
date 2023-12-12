@@ -127,17 +127,86 @@ impl Cell {
 }
 
 fn part_1(input: &str) -> usize {
+    // let universe = Universe::parse(input);
+
+    // universe.expand().sum_of_distances()
+    part_2(input, 2)
+}
+
+fn part_2(input: &str, expansion_factor: usize) -> usize {
     let universe = Universe::parse(input);
 
-    universe.expand().sum_of_distances()
+    let galaxies = universe.galaxies();
+
+    struct Galaxy {
+        original: (usize, usize),
+        expanded: (usize, usize),
+    }
+
+    let mut galaxies = galaxies
+        .into_iter()
+        .map(|g| Galaxy {
+            original: g,
+            expanded: g,
+        })
+        .collect::<Vec<_>>();
+
+    let empty_rows = universe.get_empty_rows();
+    let empty_cols = universe.get_empty_cols();
+
+    for row in empty_rows.into_iter() {
+        for g in galaxies.iter_mut() {
+            if g.original.0 >= row {
+                g.expanded.0 += expansion_factor - 1;
+            }
+        }
+    }
+
+    for col in empty_cols.into_iter() {
+        for g in galaxies.iter_mut() {
+            if g.original.1 >= col {
+                g.expanded.1 += expansion_factor - 1;
+            }
+        }
+    }
+
+    let pairs = galaxies
+        .iter()
+        .enumerate()
+        .flat_map(|(i, g)| {
+            galaxies
+                .iter()
+                .skip(i + 1)
+                .map(|g2| (g.expanded, g2.expanded))
+                .collect::<Vec<_>>()
+        })
+        .collect::<Vec<_>>();
+
+    pairs
+        .into_iter()
+        .map(|((x1, y1), (x2, y2))| x1.abs_diff(x2) + y1.abs_diff(y2))
+        .sum()
 }
 
 fn main() {
     let sample_input = include_str!("sample.input");
     let sample_part_1_ans = part_1(sample_input);
     dbg!(sample_part_1_ans);
+    assert_eq!(sample_part_1_ans, 374);
 
     let my_input = include_str!("my.input");
     let my_part_1_ans = part_1(my_input);
     dbg!(my_part_1_ans);
+    assert_eq!(my_part_1_ans, 9545480);
+
+    let sample_part_2_ans_small = part_2(sample_input, 10);
+    dbg!(sample_part_2_ans_small);
+    assert_eq!(sample_part_2_ans_small, 1030);
+
+    let sample_part_2_ans_large = part_2(sample_input, 100);
+    dbg!(sample_part_2_ans_large);
+    assert_eq!(sample_part_2_ans_large, 8410);
+
+    let my_part_2_ans = part_2(my_input, 1_000_000);
+    dbg!(my_part_2_ans);
 }
