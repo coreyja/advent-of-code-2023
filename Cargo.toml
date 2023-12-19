@@ -13,6 +13,7 @@ members = [
   "10-pipe-maze",
   "11-cosmic-expansion",
   "12-hot-springs",
+  "13-point-of-incidence",
 ]
 resolver = "2"
 
