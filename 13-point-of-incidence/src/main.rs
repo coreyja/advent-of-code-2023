@@ -13,9 +13,9 @@ impl Puzzle {
 
     // index is a line in the horizontal direction
     // between two y-indexes
-    fn is_horizontal_reflection(&self, index: usize, num_differences: usize) -> bool {
+    fn horizontal_reflection_count_differences(&self, index: usize) -> Option<usize> {
         if index == 0 {
-            return false;
+            return None;
         }
 
         let max_distance = index.min(self.cells.len() - index);
@@ -32,12 +32,12 @@ impl Puzzle {
             }
         }
 
-        differences == num_differences
+        Some(differences)
     }
 
-    fn is_vertical_reflection(&self, index: usize, num_differences: usize) -> bool {
+    fn vertical_reflection_count_differences(&self, index: usize) -> Option<usize> {
         if index == 0 {
-            return false;
+            return None;
         }
 
         let max_distance = index.min(self.cells[0].len() - index);
@@ -54,15 +54,17 @@ impl Puzzle {
             }
         }
 
-        differences == num_differences
+        Some(differences)
     }
 
     fn horizontal_reflection(&self, num_differences: usize) -> Option<usize> {
-        (0..self.cells.len()).find(|&i| self.is_horizontal_reflection(i, num_differences))
+        (0..self.cells.len())
+            .find(|&i| self.horizontal_reflection_count_differences(i) == Some(num_differences))
     }
 
     fn vertical_reflection(&self, num_differences: usize) -> Option<usize> {
-        (0..self.cells[0].len()).find(|&i| self.is_vertical_reflection(i, num_differences))
+        (0..self.cells[0].len())
+            .find(|&i| self.vertical_reflection_count_differences(i) == Some(num_differences))
     }
 
     fn value(&self) -> usize {
