@@ -146,6 +146,18 @@ fn part_1(input: &str) -> usize {
 }
 
 fn part_2(input: &str) -> usize {
+    // This answer is not optimized and takes a long time to run.
+    //
+    // I think I want to change the `count_possible` impl to work on groups of things
+    // instead of individual characters.
+    //
+    // Get groupings of each cell, and compare with the 'broken sets' to look for pre/post fixes that 'match'.
+    // By match we mean a group with size that matches the broken set
+    // We can then 'strip' those matches out and work on the smaller inner groups.
+    //
+    // At some point we will need to break up the groups into smaller groups
+    // We can do that by making each unknown a working cell, and using that to create smaller groups.
+    // We can sum the result for making each unknown a working cell
     let rows = input.lines().map(Row::parse).collect::<Vec<_>>();
     let expanded_rows = rows.iter().map(|r| r.expand()).collect::<Vec<_>>();
 
